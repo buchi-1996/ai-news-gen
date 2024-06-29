@@ -375,7 +375,7 @@ async function test() {
   console.log('summaries', summaries);
 }
 
-// test();
+test();
 
 module.exports = {
   generateNewsFeed,
