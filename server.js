@@ -25,63 +25,63 @@ function getNowDate() {
 const categoriesWithId = [
   {
     name: 'Arts & Culture',
-    id: 56
+    id: 16
   },
   {
     name: 'Auto & Yatching',
-    id: 56
+    id: 20
   },
   {
     name: 'Aviation',
-    id: 56
+    id: 24
   },
   {
     name: 'Business & Finance',
-    id: 52
+    id: 17
   },
   {
     name: 'Entertainment',
-    id: 52
+    id: 16
   },
   {
     name: 'Fashion',
-    id: 32
+    id: 16
   },
   {
     name: 'Food & Wine',
-    id: 32
+    id: 16
   },
   {
     name: 'Health & Wellness',
-    id: 32
+    id: 17
   },
   {
     name: 'Home Design',
-    id: 32
+    id: 16
   },
   {
     name: 'jewelry & Watches',
-    id: 32
+    id: 16
   },
   {
     name: 'Lifestyle',
-    id: 32
+    id: 16
   },
   {
     name: 'Pets',
-    id: 32
+    id: 23
   },
   {
     name: 'Philanthropy',
-    id: 32
+    id: 23
   },
   {
     name: 'Technology',
-    id: 32
+    id: 24
   },
   {
     name: 'Travel',
-    id: 32
+    id: 16
   }
 ];
 
@@ -217,6 +217,7 @@ async function summarizeArticle(article) {
 }
 
 async function pushToWebhook(blogPost) {
+  console.log('Pushing to Webhook started ===== ');
   try {
     const apiUrl = process.env.WEB_URL + '/wp-json/wp/v2/posts';
 
@@ -375,7 +376,7 @@ async function test() {
   console.log('summaries', summaries);
 }
 
-test();
+// test();
 
 module.exports = {
   generateNewsFeed,
