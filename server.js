@@ -1,3 +1,4 @@
+
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
 const axios = require('axios');
@@ -37,19 +38,19 @@ const categoriesWithId = [
   },
   {
     name: 'Business & Finance',
-    id: 17
+    id: 19
   },
   {
     name: 'Entertainment',
-    id: 16
+    id: 26
   },
   {
     name: 'Fashion',
-    id: 16
+    id: 13
   },
   {
     name: 'Food & Wine',
-    id: 16
+    id: 21
   },
   {
     name: 'Health & Wellness',
@@ -57,15 +58,19 @@ const categoriesWithId = [
   },
   {
     name: 'Home Design',
-    id: 16
+    id: 14
   },
   {
     name: 'jewelry & Watches',
-    id: 16
+    id: 25
   },
   {
     name: 'Lifestyle',
-    id: 16
+    id: 12
+  },
+  {
+    name: 'People',
+    id: 22
   },
   {
     name: 'Pets',
@@ -73,15 +78,15 @@ const categoriesWithId = [
   },
   {
     name: 'Philanthropy',
-    id: 23
+    id: 18
   },
   {
     name: 'Technology',
-    id: 24
+    id: 27
   },
   {
     name: 'Travel',
-    id: 16
+    id: 15
   }
 ];
 
@@ -99,6 +104,7 @@ async function getNewsArticles() {
       'Home Design',
       'Jewelry & Watches',
       'Lifestyle',
+      'People',
       'Pets',
       'Philanthropy',
       'Technology',
@@ -107,7 +113,7 @@ async function getNewsArticles() {
 
     const articles = await Promise.all(
       categories.map(async (category) => {
-        const url = `https://newsapi.org/v2/everything?q=${category} -politics -"political" -"government" -"election"&apiKey=${process.env.NEWS_API_KEY
+        const url = `https://newsapi.org/v2/everything?q=${category.toLowerCase()} -politics -"political" -"government" -"election"&apiKey=${process.env.NEWS_API_KEY
           }&pageSize=${process.env.NEWS_SIZE}&from=${getNowDate()}&language=en`;
         const response = await axios.get(url);
 
@@ -115,14 +121,14 @@ async function getNewsArticles() {
           article.categories = [
             categoriesWithId.find((c) => c.name === category)?.id
           ];
-        
+
           return article;
 
         });
       })
     );
 
-  
+
 
     const flattenedArticles = articles.flat();
 
@@ -163,7 +169,7 @@ async function changeArticleTitle(originalTitle, summary) {
     });
 
     const newTitle = response.choices[0].message.content.trim();
-console.log(newTitle);
+    console.log(newTitle);
     return newTitle;
   } catch (error) {
     console.error('Error in changing article title:', error);
@@ -177,7 +183,7 @@ async function summarizeArticle(article) {
     messages: [
       {
         role: 'user',
-        content: PROMPTS.type_three(article)
+        content: PROMPTS.type_two(article)
       }
     ],
     temperature: 1,
@@ -191,7 +197,8 @@ async function summarizeArticle(article) {
 
   const [newTitle, audioBuffer] = await Promise.all([
     changeArticleTitle(article.title, summary),
-    textToSpeech(summary)
+    textToSpeech(summary),
+    null
   ]);
 
   const uploadedMedia = await uploadAudioToWordPress(
@@ -202,10 +209,11 @@ async function summarizeArticle(article) {
   if (!uploadedMedia) {
     console.error('Error uploading audio to WordPress:', audioBuffer);
   }
+  // const uploadedMedia = null;
 
   return {
     title: newTitle,
-    content: `${summary}\n #LetsConnect, #Blockchain, #GenAI, #SpatialCompute, #Metaverse, #JobsOfTheFuture ${uploadedMedia &&
+    content: `${summary}\n ${uploadedMedia &&
       uploadedMedia?.url &&
       `\n\n<p class="has-text-align-center"><strong>Prefer to listen?</strong>&nbsp;No problem!&nbsp;We've created an audio version for your convenience.&nbsp;Press play and relax while you absorb the information.</p>
      <figure class="wp-block-audio"><audio controls src="${uploadedMedia?.url}"></audio></figure>`
@@ -376,7 +384,7 @@ async function test() {
   console.log('summaries', summaries);
 }
 
-// test();
+// // test();
 
 module.exports = {
   generateNewsFeed,
