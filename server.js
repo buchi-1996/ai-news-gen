@@ -111,10 +111,13 @@ async function getNewsArticles() {
       'Travel'
     ];
 
+    // US-based sources
+  const usSources = 'cnn,fox-news,abc-news,nbc-news,cbs-news,the-wall-street-journal,the-washington-post';
+
     const articles = await Promise.all(
       categories.map(async (category) => {
         const url = `https://newsapi.org/v2/everything?q=${category.toLowerCase()} -politics -"political" -"government" -"election"&apiKey=${process.env.NEWS_API_KEY
-          }&pageSize=${process.env.NEWS_SIZE}&from=${getNowDate()}&language=en`;
+          }&pageSize=${process.env.NEWS_SIZE}&from=${getNowDate()}&language=en&sources=${usSources}`;
         const response = await axios.get(url);
 
         return response.data.articles.map((article) => {
