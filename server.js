@@ -111,13 +111,33 @@ async function getNewsArticles() {
       'Travel'
     ];
 
-    // US-based sources
-  const usSources = 'cnn,fox-news,abc-news,nbc-news,cbs-news,the-wall-street-journal,the-washington-post';
+    // US-based Domains
+    const domains = [
+      'cnn.com',
+      'foxnews.com',
+      'abcnews.go.com',
+      'nbcnews.com',
+      'cbsnews.com',
+      'usatoday.com',
+      'wsj.com',
+      'nytimes.com',
+      'washingtonpost.com',
+      'latimes.com',
+      'npr.org',
+      'dallasnews.com',
+      'nbcdfw.com',
+      'fox4news.com',
+      'dallasobserver.com',
+      'azcentral.com',
+      'abc15.com',
+      'fox10phoenix.com',
+      '12news.com',
+    ];
 
     const articles = await Promise.all(
       categories.map(async (category) => {
-        const url = `https://newsapi.org/v2/everything?q=${category.toLowerCase()} -politics -"political" -"government" -"election"&apiKey=${process.env.NEWS_API_KEY
-          }&pageSize=${process.env.NEWS_SIZE}&from=${getNowDate()}&language=en&sources=${usSources}`;
+        const url = `https://newsapi.org/v2/everything?q=${category.toLowerCase()} -politics -"political" -"government" -"protest" -"democracy" -"election"&domains=robbreport.com,dallasobserver.com,fox10phoenix.com,azcentral.com,washingtonpost.com&apiKey=${process.env.NEWS_API_KEY
+          }&pageSize=${process.env.NEWS_SIZE}&from=${getNowDate()}`;
         const response = await axios.get(url);
 
         return response.data.articles.map((article) => {
@@ -387,7 +407,7 @@ async function test() {
   console.log('summaries', summaries);
 }
 
-// // test();
+// test();
 
 module.exports = {
   generateNewsFeed,
