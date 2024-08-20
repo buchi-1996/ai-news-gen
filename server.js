@@ -1,4 +1,3 @@
-
 const dotenv = require('dotenv');
 const OpenAI = require('openai');
 const axios = require('axios');
@@ -13,125 +12,42 @@ const chatGptModel = 'gpt-3.5-turbo-16k';
 let tryCount = 0;
 
 function getNowDate() {
-  const currentDate = new Date(); // Get the current date
-  currentDate.setDate(currentDate.getDate() - 1); // Subtract 1 day from the current date
+  const currentDate = new Date(); 
+  currentDate.setDate(currentDate.getDate() - 1); 
 
   const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1; // Note: Months are zero-based, so January is 0, February is 1, etc.
+  const month = currentDate.getMonth() + 1; 
   const day = currentDate.getDate();
 
   return `${year}-${month}-${day}`;
 }
 
 const categoriesWithId = [
-  {
-    name: 'Arts & Culture',
-    id: 16
-  },
-  {
-    name: 'Auto & Yatching',
-    id: 20
-  },
-  {
-    name: 'Aviation',
-    id: 24
-  },
-  {
-    name: 'Business & Finance',
-    id: 19
-  },
-  {
-    name: 'Entertainment',
-    id: 26
-  },
-  {
-    name: 'Fashion',
-    id: 13
-  },
-  {
-    name: 'Food & Wine',
-    id: 21
-  },
-  {
-    name: 'Health & Wellness',
-    id: 17
-  },
-  {
-    name: 'Home Design',
-    id: 14
-  },
-  {
-    name: 'jewelry & Watches',
-    id: 25
-  },
-  {
-    name: 'Lifestyle',
-    id: 12
-  },
-  {
-    name: 'People',
-    id: 22
-  },
-  {
-    name: 'Pets',
-    id: 23
-  },
-  {
-    name: 'Philanthropy',
-    id: 18
-  },
-  {
-    name: 'Technology',
-    id: 27
-  },
-  {
-    name: 'Travel',
-    id: 15
-  }
+  { name: 'Arts & Culture', id: 16 },
+  { name: 'Auto & Yatching', id: 20 },
+  { name: 'Aviation', id: 24 },
+  { name: 'Business & Finance', id: 19 },
+  { name: 'Entertainment', id: 26 },
+  { name: 'Fashion', id: 13 },
+  { name: 'Food & Wine', id: 21 },
+  { name: 'Health & Wellness', id: 17 },
+  { name: 'Home Design', id: 14 },
+  { name: 'Jewelry & Watches', id: 25 },
+  { name: 'Lifestyle', id: 12 },
+  { name: 'People', id: 22 },
+  { name: 'Pets', id: 23 },
+  { name: 'Philanthropy', id: 18 },
+  { name: 'Technology', id: 27 },
+  { name: 'Travel', id: 15 }
 ];
 
 async function getNewsArticles() {
   try {
-    let categories = [
-      'Arts & Culture',
-      'Auto & Yatching',
-      'Aviation',
-      'Business & Finance',
-      'Entertainment',
-      'Fashion',
-      'Food & Wine',
-      'Health & Wellness',
-      'Home Design',
-      'Jewelry & Watches',
-      'Lifestyle',
-      'People',
-      'Pets',
-      'Philanthropy',
-      'Technology',
-      'Travel'
-    ];
-
-    // US-based Domains
-    const domains = [
-      'cnn.com',
-      'foxnews.com',
-      'abcnews.go.com',
-      'nbcnews.com',
-      'cbsnews.com',
-      'usatoday.com',
-      'wsj.com',
-      'nytimes.com',
-      'washingtonpost.com',
-      'latimes.com',
-      'npr.org',
-      'dallasnews.com',
-      'nbcdfw.com',
-      'fox4news.com',
-      'dallasobserver.com',
-      'azcentral.com',
-      'abc15.com',
-      'fox10phoenix.com',
-      '12news.com',
+    const categories = [
+      'Arts & Culture', 'Auto & Yatching', 'Aviation', 'Business & Finance',
+      'Entertainment', 'Fashion', 'Food & Wine', 'Health & Wellness',
+      'Home Design', 'Jewelry & Watches', 'Lifestyle', 'People', 'Pets',
+      'Philanthropy', 'Technology', 'Travel'
     ];
 
     const articles = await Promise.all(
@@ -141,38 +57,37 @@ async function getNewsArticles() {
         const response = await axios.get(url);
 
         return response.data.articles.map((article) => {
-          article.categories = [
-            categoriesWithId.find((c) => c.name === category)?.id
-          ];
-
+          article.categories = [categoriesWithId.find((c) => c.name === category)?.id];
           return article;
-
         });
       })
     );
 
-
-
     const flattenedArticles = articles.flat();
 
-    const uniqueTitles = {};
+    const uniqueArticles = {};
 
-    const uniqueDatas = flattenedArticles.filter((article) => {
-      if (!uniqueTitles[article.title]) {
-        uniqueTitles[article.title] = true;
+    const filteredArticles = flattenedArticles.filter((article) => {
+      const titleKey = article.title.toLowerCase();
+
+      if (!uniqueArticles[titleKey]) {
+        uniqueArticles[titleKey] = [article.categories[0]];
+        console.log(`Selected Article: "${article.title}" in category: ${categoriesWithId.find(c => c.id === article.categories[0])?.name}`);
         return true;
+      } else if (!uniqueArticles[titleKey].includes(article.categories[0])) {
+        return false; // Skip this article to prevent it from repeating in multiple categories
       }
       return false;
     });
 
-    const trimmedPosts = uniqueDatas.splice(0, 10);
-
-    // Process the retrieved articles
-    return trimmedPosts;
+    return filteredArticles.splice(0, 10); // Return the trimmed list
   } catch (error) {
     console.error('Error retrieving news articles:', error);
+    return []; // Return an empty array in case of error
   }
 }
+
+
 
 async function changeArticleTitle(originalTitle, summary) {
   try {
@@ -204,10 +119,7 @@ async function summarizeArticle(article) {
   const completion = await openai.chat.completions.create({
     model: chatGptModel,
     messages: [
-      {
-        role: 'user',
-        content: PROMPTS.type_two(article)
-      }
+      { role: 'user', content: PROMPTS.type_two(article) }
     ],
     temperature: 1,
     max_tokens: 6000,
@@ -220,8 +132,7 @@ async function summarizeArticle(article) {
 
   const [newTitle, audioBuffer] = await Promise.all([
     changeArticleTitle(article.title, summary),
-    textToSpeech(summary),
-    null
+    textToSpeech(summary)
   ]);
 
   const uploadedMedia = await uploadAudioToWordPress(
@@ -232,16 +143,13 @@ async function summarizeArticle(article) {
   if (!uploadedMedia) {
     console.error('Error uploading audio to WordPress:', audioBuffer);
   }
-  // const uploadedMedia = null;
 
   return {
     title: newTitle,
-    content: `${summary}\n ${uploadedMedia &&
-      uploadedMedia?.url &&
-      `\n\n<p class="has-text-align-center"><strong>Prefer to listen?</strong>&nbsp;No problem!&nbsp;We've created an audio version for your convenience.&nbsp;Press play and relax while you absorb the information.</p>
-     <figure class="wp-block-audio"><audio controls src="${uploadedMedia?.url}"></audio></figure>`
-      }`,
-    status: 'publish', // Set the status to 'publish' to publish the post immediately
+    content: `${summary}\n ${uploadedMedia?.url ? `
+      <p class="has-text-align-center"><strong>Prefer to listen?</strong>&nbsp;No problem!&nbsp;We've created an audio version for your convenience.&nbsp;Press play and relax while you absorb the information.</p>
+      <figure class="wp-block-audio"><audio controls src="${uploadedMedia?.url}"></audio></figure>` : ''}`,
+    status: 'publish',
     imageUrl: article.urlToImage,
     categories: article.categories
   };
@@ -364,7 +272,6 @@ async function textToSpeech(text) {
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
-    // await fs.promises.writeFile(speechFile, buffer); // since buffer is being used , no need to save to file storage
 
     return buffer;
   } catch (error) {
@@ -372,40 +279,62 @@ async function textToSpeech(text) {
   }
 }
 
-async function uploadAudioToWordPress(audioBuffer, filename) {
+async function uploadAudioToWordPress(audioBuffer, fileName) {
   try {
+    const authHeader = {
+      username: process.env.WEB_SITE_USERNAME,
+      password: process.env.WEB_SITE_APPLICATION_KEY
+    };
+
     const formData = new FormData();
-    // Assuming `audioBuffer` is already a Buffer instance. If not, you might need to convert it similar to the image upload example
-    formData.append('file', audioBuffer, filename);
+    formData.append('file', audioBuffer, fileName);
 
     const uploadUrl = `${process.env.WEB_URL}/wp-json/wp/v2/media`;
 
-    const response = await axios.post(uploadUrl, formData, {
+    const uploadResponse = await axios.post(uploadUrl, formData, {
       headers: {
-        ...formData.getHeaders(), // This automatically sets the Content-Type to multipart/form-data with the correct boundary
-        Authorization: `Basic ${Buffer.from(
-          `${process.env.WEB_SITE_USERNAME}:${process.env.WEB_SITE_APPLICATION_KEY}`
-        ).toString('base64')}`
-      }
+        'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
+      },
+      auth: authHeader
     });
 
-    console.log('Audio upload successful. Media ID:', response.data.id);
-    return { id: response?.data?.id, url: response?.data?.source_url };
+    console.log(uploadResponse);
+
+    return uploadResponse.data;
   } catch (error) {
-    console.error(
-      'Error uploading audio to WordPress:',
-      error.response?.data || error.message,
-      error.stack
-    );
+    console.error('Error uploading audio to WordPress:', error);
   }
 }
 
+
 async function test() {
-  const articles = await getNewsArticles();
-  console.log('articles', articles);
-  const summaries = await summarizeArticlesWithIntervals(articles.slice(0, 2));
-  console.log('summaries', summaries);
+  try {
+    const articles = await getNewsArticles();
+    if (!articles || articles.length === 0) {
+      console.log('No articles available');
+      return;
+    }
+
+    const summaries = await summarizeArticlesWithIntervals(articles.slice(0, 2));
+
+    await Promise.all(
+      summaries.map(async (summary) => {
+        await pushToWebhook(summary);
+      })
+    );
+
+    console.log('Blog post successfully pushed to webhook');
+  } catch (error) {
+    console.error('Error in test function:', error);
+  }
 }
+
+// async function test() {
+//   const articles = await getNewsArticles();
+//   console.log('articles', articles);
+//   const summaries = await summarizeArticlesWithIntervals(articles.slice(0, 2));
+//   console.log('summaries', summaries);
+// }
 
 // test();
 
