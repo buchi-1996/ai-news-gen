@@ -12,52 +12,67 @@ const chatGptModel = 'gpt-3.5-turbo-16k';
 let tryCount = 0;
 
 function getNowDate() {
-  const currentDate = new Date(); 
-  currentDate.setDate(currentDate.getDate() - 1); 
+  const currentDate = new Date();
+  currentDate.setDate(currentDate.getDate() - 1);
 
   const year = currentDate.getFullYear();
-  const month = currentDate.getMonth() + 1; 
-  const day = currentDate.getDate();
+  const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+  const day = String(currentDate.getDate()).padStart(2, '0');
 
   return `${year}-${month}-${day}`;
 }
 
 const categoriesWithId = [
-  { name: 'Arts & Culture', id: 16 },
-  { name: 'Auto & Yatching', id: 20 },
-  { name: 'Aviation', id: 24 },
-  { name: 'Business & Finance', id: 19 },
-  { name: 'Entertainment', id: 26 },
-  { name: 'Fashion', id: 13 },
-  { name: 'Food & Wine', id: 21 },
-  { name: 'Health & Wellness', id: 17 },
-  { name: 'Home Design', id: 14 },
-  { name: 'Jewelry & Watches', id: 25 },
-  { name: 'Lifestyle', id: 12 },
-  { name: 'People', id: 22 },
-  { name: 'Pets', id: 23 },
-  { name: 'Philanthropy', id: 18 },
-  { name: 'Technology', id: 27 },
-  { name: 'Travel', id: 15 }
+  { name: 'Arts & Culture', id: 16, domains: ['hyperallergic.com', 'thisiscolossal.com', 'artnews.com'] },
+  { name: 'Auto & Yatching', id: 20, domains: ['robbreport.com', 'yachtingworld.com', 'autoblog.com'] },
+  { name: 'Aviation', id: 24, domains: ['flightglobal.com', 'aviationweek.com', 'avgeekery.com', 'flyingmag.com', 'simpleflying.com'] },
+  { name: 'Business & Finance', id: 19, domains: ['insightssuccess.com', 'forbes.com', 'bmmagazine.co.uk', 'fortune.com', 'businessinsider.com'] },
+  { name: 'Entertainment', id: 26, domains: ['hollywoodreporter.com', 'ew.com', 'variety.com', 'deadline.com', 'collider.com']},
+  { name: 'Fashion', id: 13, domains: ['glamourandgains.com', 'luxuo.com']},
+  { name: 'Food & Wine', id: 21, domains: [ 'foodandwine.com', 'epicurious.com', 'seriouseats.com', 'bonappetit.com']},
+  { name: 'Health & Wellness', id: 17, domains: ['healthline.com', 'webmd.com', 'mayoclinic.org', 'verywellhealth.com', 'prevention.com']},
+  { name: 'Home Design', id: 14, doamains: ['houzz.com', 'dwell.com', 'housebeautiful.com', 'design-milk.com',] },
+  { name: 'Jewelry & Watches', id: 25, domains: ['jckonline.com', 'nationaljeweler.com', 'thejewelleryeditor.com', 'hodinkee.com', 'watchtime.com', 'jewellermagazine.com']},
+  { name: 'Lifestyle', id: 12, domains: ['goop.com', 'theeverygirl.com', 'refinery29.com', 'manrepeller.com', 'apartmenttherapy.com', 'coveteur.com']},
+  { name: 'People', id: 22, domains: ['people.com', 'usmagazine.com', 'pagesix.com', 'hollywoodlife.com',]},
+  { name: 'Pets', id: 23, domains: ['petmd.com', 'petfinder.com', 'catster.com', 'dogster.com', 'vetstreet.com']},
+  { name: 'Philanthropy', id: 18, domains: ['insidephilanthropy.com', 'alliancemagazine.org', 'geofunders.org', 'cep.org']},
+  { name: 'Technology', id: 27, domains: ['techcrunch.com', 'theverge.com', 'wired.com', 'arstechnica.com']},
+  { name: 'Travel', id: 15, domains: ['tripadvisor.com', 'lonelyplanet.com', 'expedia.com', 'kayak.com', 'travelandleisure.com']}
 ];
 
 async function getNewsArticles() {
   try {
-    const categories = [
-      'Arts & Culture', 'Auto & Yatching', 'Aviation', 'Business & Finance',
-      'Entertainment', 'Fashion', 'Food & Wine', 'Health & Wellness',
-      'Home Design', 'Jewelry & Watches', 'Lifestyle', 'People', 'Pets',
-      'Philanthropy', 'Technology', 'Travel'
-    ];
-
     const articles = await Promise.all(
-      categories.map(async (category) => {
-        const url = `https://newsapi.org/v2/everything?q=${category.toLowerCase()} -politics -"political" -"government" -"protest" -"democracy" -"election"&domains=robbreport.com,dallasobserver.com,fox10phoenix.com,azcentral.com,washingtonpost.com&apiKey=${process.env.NEWS_API_KEY
-          }&pageSize=${process.env.NEWS_SIZE}&from=${getNowDate()}`;
+      categoriesWithId.map(async (category) => {
+        // Ensure domains is an array and use a default empty array if it's not defined
+        const domains = Array.isArray(category.domains) ? category.domains.join(',') : '';
+        
+        // Construct the query with proper encoding
+        const query = encodeURIComponent(
+          `${category.name.toLowerCase()} -politics -"political" -"government" -"protest" -"democracy" -"election"`
+        );
+
+        // Format date correctly
+        const fromDate = getNowDate();
+
+        // Construct URL
+        const url = `https://newsapi.org/v2/everything?q=${query}&domains=${domains}&apiKey=${process.env.NEWS_API_KEY}&pageSize=${process.env.NEWS_SIZE}&from=${fromDate}`;
+
+        // console.log(`Fetching articles for category: ${category.name} with URL: ${url}`);
+
         const response = await axios.get(url);
 
+        // Log full response for debugging
+        console.log(`Response for category ${category.name}:`, response.data);
+
+        if (response.data.status !== 'ok') {
+          console.error(`Error fetching articles for category: ${category.name}. Status: ${response.data.status}`);
+          return [];
+        }
+
         return response.data.articles.map((article) => {
-          article.categories = [categoriesWithId.find((c) => c.name === category)?.id];
+          article.categories = [category.id];
           return article;
         });
       })
@@ -86,6 +101,7 @@ async function getNewsArticles() {
     return []; // Return an empty array in case of error
   }
 }
+
 
 
 
