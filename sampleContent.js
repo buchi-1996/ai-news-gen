@@ -9,7 +9,7 @@ As we move forward, it's clear that events like the Met Gala play a crucial role
 const samplePost2 = `
 In a groundbreaking reveal, Lamborghini has announced the launch of its latest model, the Aventador Ultimae, a blend of the company's legendary performance with cutting-edge technology. This limited-edition supercar, with only 600 units being produced, marks the end of an era for the Aventador series, combining the best features of its predecessors with new innovations.
 
-The Aventador Ultimae boasts a V12 engine capable of delivering 769 horsepower, making it one of the most powerful models in Lamborghini's history. The design is a tribute to the brand's commitment to excellence, featuring sleek aerodynamics, luxurious interiors, and advanced driving technologies that ensure an unmatched driving experience.
+The Aventador Ultimate boasts a V12 engine capable of delivering 769 horsepower, making it one of the most powerful models in Lamborghini's history. The design is a tribute to the brand's commitment to excellence, featuring sleek aerodynamics, luxurious interiors, and advanced driving technologies that ensure an unmatched driving experience.
 
 In the yachting world, Ferretti Group has unveiled its latest superyacht, the Ferretti 1000, a marvel of engineering and design. This 100-foot yacht features state-of-the-art navigation systems, lavish accommodations, and an expansive deck space designed for ultimate relaxation and entertainment. The Ferretti 1000 represents the pinnacle of luxury and performance in the yachting industry, catering to the elite's desire for exclusivity and innovation.
 `;

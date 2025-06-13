@@ -4,3 +4,7 @@ dist
 .idea
 .idea/
 .DS_Store
+promtsTest.js
+sampler-server.js
+
+
