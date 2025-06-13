@@ -130,15 +130,38 @@ async function getNewsArticles() {
     }
 }
 
-async function changeArticleTitle(originalTitle, summary) {
+async function changeArticleTitle(originalTitle, summary, categoryName) {
     try {
-        const prompt = `Rewrite the following article title to be similar but not the same, making it more engaging and luxury-focused:\n\nOriginal Title: ${originalTitle}\n\nArticle Summary: ${summary}\n\nNew Title:`;
+        const prompt = `You are an expert luxury content editor. Create ONE compelling, luxury-focused title for this article. Do not provide options or multiple choices.
+
+REQUIREMENTS:
+- Make it engaging and premium-focused
+- Emphasize exclusivity, sophistication, or luxury appeal
+- Keep it concise but impactful
+- Match the luxury tone of the content
+- Focus on the category: ${categoryName}
+
+Original Title: ${originalTitle}
+
+Article Summary: ${summary}
+
+Generate ONE final title only (no options, no explanations):`;
 
         const result = await model.generateContent(prompt);
         const response = await result.response;
-        const newTitle = response.text().trim();
+        let newTitle = response.text().trim();
 
-        console.log('New Title:', newTitle);
+        // Clean up any unwanted formatting or prefixes
+        newTitle = newTitle.replace(/^(Title:|New Title:|Final Title:)/i, '').trim();
+        newTitle = newTitle.replace(/^["']|["']$/g, ''); // Remove quotes if present
+        
+        // If the AI still provides options despite instructions, take the first one
+        if (newTitle.includes('\n') || newTitle.includes('Option')) {
+            newTitle = newTitle.split('\n')[0].trim();
+            newTitle = newTitle.replace(/^Option \d+[:\-\.]?\s*/i, '').trim();
+        }
+
+        console.log('Generated Title:', newTitle);
         return newTitle;
     } catch (error) {
         console.error('Error in changing article title:', error);
@@ -152,7 +175,7 @@ async function summarizeArticle(article) {
         const response = await result.response;
         const summary = response.text();
 
-        const newTitle = await changeArticleTitle(article.title, summary);
+        const newTitle = await changeArticleTitle(article.title, summary, article.categoryName);
 
         return {
             title: newTitle,
