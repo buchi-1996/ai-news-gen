@@ -209,7 +209,7 @@ async function pushToWebhook(blogPost) {
         }
 
         // Add source attribution to content
-        blogPost.content += `\n\n<p><em>Source: <a href="${blogPost.sourceUrl}" target="_blank" rel="noopener">${blogPost.originalTitle}</a></em></p>`;
+        blogPost.content += `\n\n<p><em>Credit(s): <strong><a class="credit" href="${blogPost.sourceUrl}" target="_blank" rel="noopener">${blogPost.originalTitle}</a></strong></em></p>`;
 
         const response = await axios.post(apiUrl, blogPost, { auth: authHeader });
         console.log('Blog post successfully pushed to webhook');
